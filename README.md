@@ -26,7 +26,8 @@ The hardware part is made by :
 
 I used an RTC, to have a real timinig and schedule the event, but you can also use a Virtual RTC to simulate the timer
 ( obviously it will not be precise like RTC but you can every day sync with a remote server and it will be enough ).
-(Here the class  I wrote ) [] and here how to use it :
+
+[Here the class  I wrote](https://raw.githubusercontent.com/enricoaleandri/LaserGun-IoT-driver/master/example/VirtualRTC.ino) and here how to use it :
 ```
 void setup(){
   //String TimeNow = YourCustomTimeService.getStringTime(); // this in case you have a service that provide this string date format dd/mm/yyyy HH:mm:ss
