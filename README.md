@@ -50,7 +50,7 @@ void loop() {
 ```
 
 I removed the soldered pins just to save space, but I think you can do it without desoldering, just force a little bit.
-Use this ( I not if is ugly I'm not a painter :D ) datasheet to build the hardwere, I just make a simple list of connection points:
+Use this ( I not if is ugly I'm not a painter :D ) datasheet to build the hardware, I just make a simple list of connection points:
 ##### Servo X
 * GND  -> GND
 * Vcc  -> Vcc ( +5 )
