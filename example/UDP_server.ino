@@ -9,19 +9,19 @@ WiFiUDP Udp;// A UDP instance to let us send and receive packets over UDP
 void UDPServerInit(){
   Udp.begin(localPort);
   SerialComunication::info("UDPServer", "UDPServer", "Created UDP server on port : ");
-  SerialComunication::info("UDPServer", "UDPServer", String(localPort));  
-} 
+  SerialComunication::info("UDPServer", "UDPServer", String(localPort));
+}
 
 String UDPServerReadData()
 {
   int noBytes = Udp.parsePacket();
   String received_command = "";
-  
+
   if ( noBytes ) {
-    
-    SerialComunication::info("UDPServer", "readData", "Recived Packet from: ");  
-    SerialComunication::info("UDPServer", "readData", String(Udp.remoteIP() ));  
-  
+
+    SerialComunication::info("UDPServer", "readData", "Recived Packet from: ");
+    SerialComunication::info("UDPServer", "readData", String(Udp.remoteIP() ));
+
     // We've received a packet, read the data from it
     Udp.read(packetBuffer,noBytes); // read the packet into the buffer
 
@@ -38,8 +38,8 @@ String UDPServerReadData()
     } // end for
     /*Serial.println();*/
 
-    SerialComunication::info("UDPServer", "readData", "Message :  "); 
-    SerialComunication::info("UDPServer", "readData", received_command); 
+    SerialComunication::info("UDPServer", "readData", "Message :  ");
+    SerialComunication::info("UDPServer", "readData", received_command);
     return received_command;
   } // end if
 }
@@ -48,4 +48,3 @@ void UDPServerWriteData(String message){
   Udp.print(message);
   Udp.endPacket();
 }
-

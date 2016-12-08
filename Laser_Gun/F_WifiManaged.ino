@@ -1,76 +1,47 @@
 
-#include <FS.h>                   //this needs to be first, or it all crashes and burns...
 
-#include <ESP8266WiFi.h>          //https://github.com/esp8266/Arduino
-
-//needed for library
-#include <DNSServer.h>
-#include <ESP8266WebServer.h>
-#include <WiFiManager.h>          //https://github.com/tzapu/WiFiManager
-
-#include <ArduinoJson.h>  
-
-//define your default values here, if there are different values in config.json, they are overwritten.
-char mqtt_server[40] = "m20.cloudmqtt.com";
-char mqtt_port[6] = "16292";
-char mqtt_username[9];
-char mqtt_password[13];
+//MQTT mqtt;
 bool shouldSaveConfig = false;
-    
 class WifiManaged {
     public :
-    
-
-
     //callback notifying us of the need to save config
     static void saveConfigCallback () {
       SerialComunication::info("WifiManaged", "saveConfigCallback", "Should save config");
       shouldSaveConfig = true;
     }
+    static void configModeCallback (WiFiManager *myWiFiManager) {
+      SerialComunication::info("WifiManaged", "configModeCallback", "Entered config mode");
+      //mqtt.setupMqtt();// reset configuration retrived from WifiManager configuration
+      //Serial.println(WiFi.softAPIP());
+      //Serial.println(myWiFiManager->getConfigPortalSSID());
+    }
     
     static void WifiManagedInit () {
       //clean FS, for testing
       //SPIFFS.format();
+      char* mqtt_server = "m20.cloudmqtt.com"; // heroku app custom mosquito
+      char* mqtt_username = "kjmlqogz"; // heroku app custom mosquito
+      char* mqtt_password = "PMHIJ5JGoY2g"; // heroku app custom mosquito
+      char* mqtt_port = "11181"; // heroku app custom mosquito
 
       //read configuration from FS json
       SerialComunication::info("WifiManaged", "WifiManagedInit", "mounting FS...");
-    
-      if (SPIFFS.begin()) {
-        SerialComunication::info("WifiManaged", "WifiManagedInit", "mounted file system");
-        if (SPIFFS.exists("/config.json")) {
-          //file exists, reading and loading
-          SerialComunication::info("WifiManaged", "WifiManagedInit", "reading config file");
-          File configFile = SPIFFS.open("/config.json", "r");
-          if (configFile) {
-            SerialComunication::info("WifiManaged", "WifiManagedInit", "opened config file");
-            size_t size = configFile.size();
-            // Allocate a buffer to store contents of the file.
-            std::unique_ptr<char[]> buf(new char[size]);
-    
-            configFile.readBytes(buf.get(), size);
-            DynamicJsonBuffer jsonBuffer;
-            JsonObject& json = jsonBuffer.parseObject(buf.get());
-            json.printTo(Serial);
-            if (json.success()) {
-              SerialComunication::info("WifiManaged", "WifiManagedInit", "\nparsed json");
-    
-              strcpy(mqtt_server, json["mqtt_server"]);
-              strcpy(mqtt_port, json["mqtt_port"]);
-              strcpy(mqtt_username, json["mqtt_username"]);
-              strcpy(mqtt_password, json["mqtt_password"]);
-    
-            } else {
-              SerialComunication::info("WifiManaged", "WifiManagedInit", "failed to load json config");
-            }
-          }
+
+      JsonObject& json = configManager::getConfig("");
+
+      if(json.success()){
+        SerialComunication::info("WifiManaged", "WifiManagedInit", "Config retrived!");
+        if(json["mqtt_server"] != "" && json["mqtt_port"] != ""
+            && json["mqtt_username"] != "" && json["mqtt_password"] != ""){
+              
+            SerialComunication::info("WifiManaged", "WifiManagedInit", "MQTT config found!");
+            strcpy(mqtt_server, json["mqtt_server"]);
+            strcpy(mqtt_port, json["mqtt_port"]);
+            strcpy(mqtt_username, json["mqtt_username"]);
+            strcpy(mqtt_password, json["mqtt_password"]);
         }
-      } else {
-        SerialComunication::info("WifiManaged", "WifiManagedInit", "failed to mount FS");
       }
       //end read
-    
-    
-    
       // The extra parameters to be configured (can be either global or just in the setup)
       // After connecting, parameter.getValue() will get you the configured value
       // id/name placeholder/prompt default length
@@ -85,9 +56,12 @@ class WifiManaged {
     
       //set config save notify callback
       wifiManager.setSaveConfigCallback(WifiManaged::saveConfigCallback);
+
+      //set AutoConect callback for reconnect MQTT server with new configuration
+      wifiManager.setAPCallback(WifiManaged::configModeCallback);
     
       //set static ip
-      wifiManager.setSTAStaticIPConfig(IPAddress(192,168,1,255), IPAddress(192,168,1,1), IPAddress(255,255,255,0));
+      //wifiManager.setSTAStaticIPConfig(IPAddress(10,0,1,99), IPAddress(10,0,1,1), IPAddress(255,255,255,0));
       
       //add all your parameters here
       wifiManager.addParameter(&custom_mqtt_server);
@@ -136,7 +110,7 @@ class WifiManaged {
         json["mqtt_username"] = mqtt_username;
         json["mqtt_password"] = mqtt_password;
     
-        File configFile = SPIFFS.open("/config.json", "w");
+        File configFile = SPIFFS.open(configFileName, "w");
         if (!configFile) {
           SerialComunication::info("WifiManaged", "WifiManagedInit", "failed to open config file for writing");
         }

@@ -1,6 +1,4 @@
 
-#include <Servo.h>
-
 Servo laserServoX;  
 Servo laserServoY;  
 
@@ -19,6 +17,7 @@ class ServoLaserMotor{
   double servoX, servoY;
   int LASER_X_PIN = 10;
   int LASER_Y_PIN = 9;
+  
   
 public:
   ServoLaserMotor(){
